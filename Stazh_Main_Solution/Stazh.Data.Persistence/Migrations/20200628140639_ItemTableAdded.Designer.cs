@@ -10,8 +10,8 @@ using Stazh.Data.Persistence;
 namespace Stazh.Data.Persistence.Migrations
 {
     [DbContext(typeof(StazhDataContext))]
-    [Migration("20200621062528_FirstItemTable")]
-    partial class FirstItemTable
+    [Migration("20200628140639_ItemTableAdded")]
+    partial class ItemTableAdded
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -31,12 +31,27 @@ namespace Stazh.Data.Persistence.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ParentItemId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("ParentItemId");
+
                     b.ToTable("Items");
+                });
+
+            modelBuilder.Entity("Stazh.Core.Data.Entities.Item", b =>
+                {
+                    b.HasOne("Stazh.Core.Data.Entities.Item", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentItemId");
                 });
 #pragma warning restore 612, 618
         }

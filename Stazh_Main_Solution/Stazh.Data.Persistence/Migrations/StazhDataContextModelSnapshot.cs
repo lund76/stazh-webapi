@@ -29,12 +29,27 @@ namespace Stazh.Data.Persistence.Migrations
                     b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
 
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("ParentItemId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
+                    b.HasIndex("ParentItemId");
+
                     b.ToTable("Items");
+                });
+
+            modelBuilder.Entity("Stazh.Core.Data.Entities.Item", b =>
+                {
+                    b.HasOne("Stazh.Core.Data.Entities.Item", "Parent")
+                        .WithMany("Children")
+                        .HasForeignKey("ParentItemId");
                 });
 #pragma warning restore 612, 618
         }

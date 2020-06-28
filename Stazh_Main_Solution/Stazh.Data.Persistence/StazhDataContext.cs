@@ -25,8 +25,17 @@ namespace Stazh.Data.Persistence
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         { 
             optionsBuilder.UseSqlServer(_connectionString);
+            base.OnConfiguring(optionsBuilder);
            
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<Item>()
+                .HasOne(x => x.Parent)
+                .WithMany(x => x.Children)
+                .HasForeignKey(x => x.ParentItemId);
+        }
     }
 }
