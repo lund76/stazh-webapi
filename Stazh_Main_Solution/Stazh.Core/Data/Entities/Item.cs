@@ -11,5 +11,7 @@ namespace Stazh.Core.Data.Entities
         public DateTime Created { get; set; }
         public virtual Item Parent { get;set; }
         public virtual HashSet<Item> Children { get; set; }
+        public virtual User Owner { get; set; }
+
     }
 }
