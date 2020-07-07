@@ -14,7 +14,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Stazh.Core\Stazh.Core.csproj" />
-    <ProjectReference Include="..\Stazh.Data.Persistence\Stazh.Data.Persistence.csproj" />
+    <ProjectReference Include="..\Stazh.Data.Persistence\Stazh.Data.EFCore.csproj" />
   </ItemGroup>
 
 </Project>
