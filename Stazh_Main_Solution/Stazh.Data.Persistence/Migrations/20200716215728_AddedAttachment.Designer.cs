@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Stazh.Data.Persistence;
+using Stazh.Data.EFCore;
 
-namespace Stazh.Data.Persistence.Migrations
+namespace Stazh.Data.EFCore.Migrations
 {
     [DbContext(typeof(StazhDataContext))]
-    [Migration("20200628143801_UserTableAdded")]
-    partial class UserTableAdded
+    [Migration("20200716215728_AddedAttachment")]
+    partial class AddedAttachment
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -20,6 +20,39 @@ namespace Stazh.Data.Persistence.Migrations
                 .HasAnnotation("ProductVersion", "3.1.5")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+            modelBuilder.Entity("Stazh.Core.Data.Entities.Attachment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("ItemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OriginalFileName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<byte[]>("Thumbnail")
+                        .HasColumnType("varbinary(max)");
+
+                    b.Property<string>("UniqueAttachmentName")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ItemId");
+
+                    b.HasIndex("UniqueAttachmentName")
+                        .IsUnique()
+                        .HasFilter("[UniqueAttachmentName] IS NOT NULL");
+
+                    b.ToTable("Attachment");
+                });
 
             modelBuilder.Entity("Stazh.Core.Data.Entities.Item", b =>
                 {
@@ -35,6 +68,9 @@ namespace Stazh.Data.Persistence.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int?>("OwnerId")
@@ -68,6 +104,13 @@ namespace Stazh.Data.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("User");
+                });
+
+            modelBuilder.Entity("Stazh.Core.Data.Entities.Attachment", b =>
+                {
+                    b.HasOne("Stazh.Core.Data.Entities.Item", null)
+                        .WithMany("ItemAttachments")
+                        .HasForeignKey("ItemId");
                 });
 
             modelBuilder.Entity("Stazh.Core.Data.Entities.Item", b =>

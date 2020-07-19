@@ -2,11 +2,12 @@ import React, { Component } from "react";
 import axios from "axios";
 
 const url = "https://localhost:44359/api/file/upload";
+//const url = "https://rocknroll.free.beeceptor.com/upload";
 const emptyItem = { name: "", description: "" };
 
 class FileUpload extends Component {
   state = {
-    item: { name: "", description: "" },
+    item: { name: "", description: "", parentItem: "" },
     selectedFile: null,
   };
 
@@ -29,7 +30,7 @@ class FileUpload extends Component {
       if (res.status === 200) {
         const item = { ...emptyItem };
         const selectedFile = null; //{...this.state.item};
-        this.setState({ item });
+        //this.setState({ item });
       }
     });
   };
@@ -49,8 +50,44 @@ class FileUpload extends Component {
     return (
       <div className="container">
         <div className="row">
-          <div className="col-md">
+          <div className="col-md-12">
             <form onSubmit={this.handleSubmit}>
+              <div className="form-group">
+                <label htmlFor="name">Title</label>
+                <input
+                  className="form-control"
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={this.state.item.name}
+                  onChange={this.handleChange}
+                ></input>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="parentItem">Parent item</label>
+                <input
+                  className="form-control"
+                  type="text"
+                  id="parentItem"
+                  name="parentItem"
+                  value={this.state.item.parentItem}
+                  onChange={this.handleChange}
+                ></input>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="description">Description</label>
+                <textarea
+                  rows="3"
+                  className="form-control"
+                  type="textarea"
+                  id="description"
+                  name="description"
+                  value={this.state.item.description}
+                  onChange={this.handleChange}
+                ></textarea>
+              </div>
               <div className="form-group files">
                 <label>Upload Your File </label>
                 <input
@@ -60,30 +97,10 @@ class FileUpload extends Component {
                   onChange={this.onChangeHandler}
                 />
               </div>
-              <div className="form-group">
-                <label for="name">Title</label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={this.state.item.name}
-                  onChange={this.handleChange}
-                ></input>
-              </div>
-              <div className="form-group">
-                <label for="description">Description</label>
-                <input
-                  type="text"
-                  id="description"
-                  name="description"
-                  value={this.state.item.description}
-                  onChange={this.handleChange}
-                ></input>
-              </div>
 
               <button
                 type="button"
-                className="btn btn-success btn-block"
+                className="form-control btn btn-success btn-block"
                 onClick={this.onClickHandler}
               >
                 Upload

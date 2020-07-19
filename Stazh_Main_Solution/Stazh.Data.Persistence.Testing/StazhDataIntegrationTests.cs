@@ -6,7 +6,8 @@ using NUnit.Framework;
 using Stazh.Core.Data;
 using Stazh.Core.Data.Entities;
 
-namespace Stazh.Data.Persistence.Testing.IntegrationTesting
+
+namespace Stazh.Data.EFCore.Testing
 {
     public class StazhDataIntegrationTests
     {
@@ -20,6 +21,8 @@ namespace Stazh.Data.Persistence.Testing.IntegrationTesting
             _stazhDataContext = new StazhDataContext($@"Server=.\SQLEXPRESS;Database=Stazh_db_{Guid.NewGuid().ToString()};Trusted_Connection=True;");
             _stazhDataContext.Database.Migrate();
             _unitOfWork = new UnitOfWork(_stazhDataContext);
+
+            
         }
 
         [OneTimeTearDown]
@@ -31,10 +34,9 @@ namespace Stazh.Data.Persistence.Testing.IntegrationTesting
         [Category("CRUD")]
         public void InsertItemAndRetrieveItAgain()
         {
-            _unitOfWork.Items.Add(new Item { Created = DateTime.UtcNow, Description = "A" });
-            _unitOfWork.Complete();
-            _currentItem = _unitOfWork.Items.Get(1);
-            Assert.True(_currentItem.Description == "A");
+            var item = CreateTestItem();
+            _currentItem = _unitOfWork.Items.Get(item.Id);
+            Assert.True(_currentItem.Description == "B");
         }
 
         [Test]
@@ -67,6 +69,24 @@ namespace Stazh.Data.Persistence.Testing.IntegrationTesting
             var itm = _unitOfWork.Items.Find(u => u.Owner.ExternalUniqueId == "user1").FirstOrDefault();
             Assert.AreEqual(itm.Owner.ExternalUniqueId, "user1");
             Assert.AreEqual(itm.Children.Single(c => c.Description == "y").Description, "y");
+        }
+
+        [Test]
+        public void AttachParent_ToNewItem_IsSuccess()
+        {
+            var item = CreateTestItem();
+            var retrievedItem = _unitOfWork.Items.Find(i => i.Name.ToLower() == "A").FirstOrDefault();
+            item.Parent = retrievedItem;
+
+
+        }
+
+        private Item CreateTestItem()
+        {
+            var item = new Item {Created = DateTime.UtcNow, Name = "A", Description = "B"};
+            _unitOfWork.Items.Add(item);
+            _unitOfWork.Complete();
+            return item;
         }
 
     }

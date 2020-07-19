@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
-using Stazh.Core.Data.Entities;
+﻿using Stazh.Core.Data.Entities;
 using Stazh.Core.Data.Repositories;
 
-namespace Stazh.Data.Persistence.Repositories
+
+namespace Stazh.Data.EFCore.Repositories
 {
     public class ItemRepository : Repository<Item>, IItemRepository
 

@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Stazh.Data.Persistence;
+using Stazh.Data.EFCore;
 
-namespace Stazh.Data.Persistence.Migrations
+namespace Stazh.Data.EFCore.Migrations
 {
     [DbContext(typeof(StazhDataContext))]
-    [Migration("20200628140639_ItemTableAdded")]
-    partial class ItemTableAdded
+    [Migration("20200712141606_FirstMigration")]
+    partial class FirstMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -37,18 +37,48 @@ namespace Stazh.Data.Persistence.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("OwnerId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("ParentItemId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OwnerId");
 
                     b.HasIndex("ParentItemId");
 
                     b.ToTable("Items");
                 });
 
+            modelBuilder.Entity("Stazh.Core.Data.Entities.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+                    b.Property<bool>("Deleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ExternalUniqueId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("User");
+                });
+
             modelBuilder.Entity("Stazh.Core.Data.Entities.Item", b =>
                 {
+                    b.HasOne("Stazh.Core.Data.Entities.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerId");
+
                     b.HasOne("Stazh.Core.Data.Entities.Item", "Parent")
                         .WithMany("Children")
                         .HasForeignKey("ParentItemId");

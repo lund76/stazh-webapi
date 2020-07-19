@@ -276,3 +276,12 @@ Session.vim
 # Private test configuration and binaries.
 config.ps1
 **/IISApplications
+Stazh_Main_Solution/Stazh.Data.AzureBlob.Testing/appsettings.json
+**/appsettings.Development.json
+
+#Test Storage Files
+**/__blobstorage__/*
+**/__azurite_db*.json
+**/wwwroot/lib/*
+
+

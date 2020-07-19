@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Stazh.Core.Data;
+﻿using Stazh.Core.Data;
 using Stazh.Core.Data.Repositories;
-using Stazh.Data.Persistence.Repositories;
+using Stazh.Data.EFCore.Repositories;
 
-namespace Stazh.Data.Persistence
+namespace Stazh.Data.EFCore
 {
     public class UnitOfWork : IUnitOfWork
     {

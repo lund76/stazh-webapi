@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Stazh.Core.Data.Entities;
 
-namespace Stazh.Data.Persistence
+namespace Stazh.Data.EFCore
 {
     public class StazhDataContext : DbContext
     {
@@ -36,6 +33,7 @@ namespace Stazh.Data.Persistence
                 .HasOne(x => x.Parent)
                 .WithMany(x => x.Children)
                 .HasForeignKey(x => x.ParentItemId);
+            modelBuilder.Entity<Attachment>().HasIndex(att => att.UniqueAttachmentName).IsUnique(true);
         }
     }
 }
