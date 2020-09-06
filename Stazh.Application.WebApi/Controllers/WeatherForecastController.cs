@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Stazh.Application.WebApi.Controllers
 {
-    [Authorize]
+    
     [ApiController]
     [Route("[controller]")]
     public class WeatherForecastController : ControllerBase

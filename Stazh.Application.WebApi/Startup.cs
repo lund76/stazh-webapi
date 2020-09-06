@@ -1,18 +1,12 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.AzureADB2C.UI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Stazh.Core.Data;
+using Stazh.Core.Data.Models;
 using Stazh.Core.Data.Repositories;
 using Stazh.Core.Services;
 using Stazh.Data.AzureBlob;
@@ -27,11 +21,16 @@ namespace Stazh.Application.WebApi
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+            StorageConfig = new StorageConfig
+            {
+                ConnectionString = Configuration["FileConnectionString"], FileContainer = "images"
+                ,ThumbnailContainer = "thumbnails", AccountName = "stazhdevstorage", AccountKey = @"YWKwLUQi21OKkMDOWby4LwymTfbUyjDeM098fDAWFQ4cGeGedWo2Q87yjRaD6fHo3Tx3gV3K0/lNCXHVcvSbag=="
+            };
         }
 
         public IConfiguration Configuration { get; }
+        public StorageConfig StorageConfig { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddAuthentication(AzureADB2CDefaults.BearerAuthenticationScheme)
@@ -44,20 +43,25 @@ namespace Stazh.Application.WebApi
                     builder =>
                     {
                         builder.AllowAnyHeader();
-                        builder.WithOrigins("http://localhost:3000");
+                        builder.AllowAnyMethod();
+                        builder.WithOrigins("http://localhost:3000","https://stazh-web-app.azurewebsites.net");
                     });
             });
 
             var context = new StazhDataContext(Configuration.GetConnectionString("StazhDataContextString"));
 
             //services.AddScoped<IFileService, FileService>();
-            services.AddScoped<IFileStorage, BlobStorage>();
+            //services.AddScoped<IFileStorage, BlobStorage>();
 
             services.AddScoped<IFileService>(
                 isp => new FileService(isp.GetRequiredService<IFileStorage>()));
+            services.AddScoped<IFileStorage>(
+                isp => new BlobStorage(StorageConfig));
 
             services.AddScoped<IItemService>(
                 isp => new ItemService(isp.GetRequiredService<IUnitOfWork>(), isp.GetRequiredService<IFileService>()));
+            services.AddScoped<IUserService>(
+                isp => new UserService(isp.GetRequiredService<IUnitOfWork>()));
 
             services.AddSingleton<IUnitOfWork>(isp => new UnitOfWork(context));
         }

@@ -8,6 +8,7 @@ namespace Stazh.Core.Data
    public interface IUnitOfWork : IDisposable
     {
         IItemRepository Items { get; }
+        IUserRepository User { get; }
     
         int Complete();
     }

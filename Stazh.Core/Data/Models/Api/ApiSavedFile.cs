@@ -1,4 +1,4 @@
-﻿namespace Stazh.Core.Data.Models
+﻿namespace Stazh.Core.Data.Models.Api
 {
     public class SavedFileModel
     {

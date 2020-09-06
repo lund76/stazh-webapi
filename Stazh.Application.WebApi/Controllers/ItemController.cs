@@ -6,8 +6,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Stazh.Application.WebApi.Utility;
 using Stazh.Core.Data.Entities;
 using Stazh.Core.Data.Models;
+using Stazh.Core.Data.Models.Api;
 using Stazh.Core.Services;
 
 namespace Stazh.Application.WebApi.Controllers
@@ -19,25 +21,34 @@ namespace Stazh.Application.WebApi.Controllers
     {
         private readonly IItemService _itemService;
         private readonly IConfiguration _configuration;
+        private readonly IUserService _userService;
+        private readonly IFileService _fileService;
 
-        public ItemController( IConfiguration configuration, IItemService itemService)
+        private string ExtUserId => ClaimHelper.GetUserIdFromClaim(User.Claims);
+
+        public ItemController( IConfiguration configuration, IItemService itemService, IUserService userService, IFileService fileService)
         {
             _itemService = itemService;
             _configuration = configuration;
+            _userService = userService;
+            _fileService = fileService;
         }
 
-        // GET: api/File
+        // GET: api/item
         [HttpGet]
-        public IEnumerable<string> Get()
+        public IEnumerable<ApiItem> Get()
         {
-            return new string[] { "value1", "value2" };
+            var items =  _itemService.FindAllBaseItems(ExtUserId);
+            return items;
         }
 
         // GET: api/File/5
         [HttpGet("{id}", Name = "Get")]
-        public string Get(int id)
+        public IEnumerable<ApiItem> Get(int id)
         {
-            return "value";
+            if (id == 0) return Get();
+            var items = _itemService.GetChildItemsFor(ExtUserId, id);
+            return items;
         }
 
         // POST: api/File
@@ -49,18 +60,16 @@ namespace Stazh.Application.WebApi.Controllers
         [HttpPost("[action]")]
         public async Task<IActionResult> Upload(IFormCollection data)
         {
-            var userID = User?.Identity?.Name ?? "1";
-
-            var storageConfig = new StorageConfig
-            {
-                ConnectionString = _configuration["FileConnectionString"], FileContainer = "images"
-            };
+            var userId = ClaimHelper.GetUserIdFromClaim(User.Claims);
+            
+         
 
             var item = new Item
             {
+                Owner = _userService.GetOrCreateUser(userId),
                 Description = data["description"],
                 Name = data["Name"],
-                Parent = _itemService.FindParentFromName(data["parentItem"]),
+                Parent = _itemService.FindParentFromId(data["parentItem"]),
                 Created = DateTime.UtcNow,
                 ItemAttachments = new HashSet<Attachment>()
             };
@@ -68,15 +77,17 @@ namespace Stazh.Application.WebApi.Controllers
 
             foreach (var file in data.Files)
             { 
-              var addedFile = await  _itemService.AddFile(file.OpenReadStream(),storageConfig,file.FileName,userID);
+              var addedFile = await  _itemService.AddFile(file.OpenReadStream(),file.FileName,userId);
               var attachment = new Attachment {OriginalFileName = addedFile.OriginalFileName, UniqueAttachmentName = addedFile.UniqueFilename};
-              MemoryStream ms = new MemoryStream();
-              await file.OpenReadStream().CopyToAsync(ms);
-              attachment.Thumbnail = ms.ToArray();
+              
+              //Removing thumbnails from database
+              //MemoryStream ms = new MemoryStream();
+              //await file.OpenReadStream().CopyToAsync(ms);
+              //attachment.Thumbnail = ms.ToArray();
               
               item.ItemAttachments.Add(attachment);
             }
-
+            
             var apiItem = _itemService.InsertNewItem(item);
 
             return new JsonResult(apiItem);
@@ -93,6 +104,10 @@ namespace Stazh.Application.WebApi.Controllers
         [HttpDelete("{id}")]
         public void Delete(int id)
         {
+            var userId = ClaimHelper.GetUserIdFromClaim(User.Claims); 
+            _itemService.DeleteItem(userId,id);
         }
+
+   
     }
 }

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NUnit.Framework;
 using Stazh.Core.Data.Models;
+using Stazh.Core.Data.Models.Api;
 using Stazh.Core.Data.Repositories;
 
 namespace Stazh.Data.AzureBlob.Testing
@@ -31,7 +32,7 @@ namespace Stazh.Data.AzureBlob.Testing
         public void MainTearDown()
         {
             _storageConfig.ConnectionString = _configuration["AzureConnectionString"];
-            bool result = _blobStorage.DeleteContainer(_storageConfig);
+            bool result = _blobStorage.DeleteStorage();
         }
 
         [SetUp]
@@ -51,7 +52,7 @@ namespace Stazh.Data.AzureBlob.Testing
 
             _storageConfig.ConnectionString = "";
 
-            var success =_blobStorage.UploadToFileStorage(fileContext.Item1,_storageConfig,fileContext.Item2);
+            var success =_blobStorage.UploadToFileStorage(fileContext.Item1,fileContext.Item2);
             Assert.That(success,"success");
         }
         [Test]
@@ -60,7 +61,7 @@ namespace Stazh.Data.AzureBlob.Testing
             var fileContext = GetTestStream();
             _storageConfig.Path = "";
 
-            var success = _blobStorage.UploadToFileStorage(fileContext.Item1,_storageConfig,fileContext.Item2);
+            var success = _blobStorage.UploadToFileStorage(fileContext.Item1,fileContext.Item2);
             Assert.That(success,"success");
             
 
@@ -74,11 +75,22 @@ namespace Stazh.Data.AzureBlob.Testing
             _storageConfig.ConnectionString = "";
 
             Assert.Throws(typeof(MissingFieldException), () => _blobStorage.UploadToFileStorage
-                (fileContext.Item1, _storageConfig, fileContext.Item2));
+                (fileContext.Item1, fileContext.Item2));
 
             Assert.Catch(() => _blobStorage.UploadToFileStorage
-                    (fileContext.Item1, _storageConfig, fileContext.Item2),  "Path or Connection string must have a value"
+                    (fileContext.Item1, fileContext.Item2),  "Path or Connection string must have a value"
             );
+        }
+
+        [Test]
+        public void GetThumbnails_WithSasToken_ValidUrl()
+        {
+            var testStream = GetTestStream();
+            _blobStorage.UploadToFileStorage(testStream.Item1, testStream.Item2);
+            var  apiItemWithChildren = new ApiItem();
+            apiItemWithChildren.Description = "A";
+            apiItemWithChildren.Id = 1;
+           
         }
 
         private void ConfigureServices(IServiceCollection serviceCollection)
@@ -88,7 +100,9 @@ namespace Stazh.Data.AzureBlob.Testing
                 .AddJsonFile("appsettings.json", false)
                 .Build();
 
-            serviceCollection.AddSingleton<IFileStorage, BlobStorage>();
+            //serviceCollection.AddSingleton<IFileStorage, BlobStorage>();
+            serviceCollection.AddSingleton<IFileStorage>(
+                s => new BlobStorage(_storageConfig));
         }
 
         private static Tuple<Stream, string> GetTestStream()

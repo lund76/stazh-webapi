@@ -11,9 +11,13 @@ namespace Stazh.Core.Services
 {
     public interface IItemService
     {
-        ApiItemCreated InsertNewItem(Item itemToInsert);
+        ApiItem InsertNewItem(Item itemToInsert);
         Item FindParentFromName(string itemName);
-        Task<SavedFileModel> AddFile(Stream openReadStream, StorageConfig storageConfig, string fileFileName,string userIdentity);
+        Item FindParentFromId(string itemId);
+        Task<SavedFileModel> AddFile(Stream openReadStream, string fileName,string userIdentity);
+        IEnumerable<ApiItem> FindAllBaseItems(string externalUserId);
+        IEnumerable<ApiItem> GetChildItemsFor(string externalUserId, int id);
+        void DeleteItem( string userId,int id);
     }
 
    

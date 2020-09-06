@@ -19,6 +19,7 @@ namespace Stazh.Data.EFCore
         }
 
         public DbSet<Item> Items { get; set; }
+        public DbSet<User> User { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         { 

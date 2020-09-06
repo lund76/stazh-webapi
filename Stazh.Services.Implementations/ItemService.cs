@@ -17,20 +17,21 @@ namespace Stazh.Services.Implementations
 {
     public class ItemService : IItemService
     {
-        private IFileService _fileService;
-        private IUnitOfWork _unitOfWork;
+        private readonly IFileService _fileService;
+        private readonly IUnitOfWork _unitOfWork;
 
         public ItemService(IUnitOfWork unitOfWork, IFileService fileService)
         {
             _unitOfWork = unitOfWork;
             _fileService = fileService;
         }
-        public ApiItemCreated InsertNewItem(Item itemToInsert)
+        public ApiItem InsertNewItem(Item itemToInsert)
         { 
             _unitOfWork.Items.Add(itemToInsert);
             var completed = _unitOfWork.Complete();
-            var itemCreated = new ApiItemCreated
-                {Id = itemToInsert.Id, Name = itemToInsert.Name, Success = completed == 1};
+            var itemCreated = new ApiItem(itemToInsert,
+                _fileService.GetThumbnailUrls(itemToInsert, itemToInsert.Owner.ExternalUniqueId));
+                //{Id = itemToInsert.Id, Name = itemToInsert.Name, Success = completed == 1};
             return itemCreated;
         }
 
@@ -40,7 +41,13 @@ namespace Stazh.Services.Implementations
             return item;
         }
 
-        public Task<SavedFileModel> AddFile(Stream stream, StorageConfig storageConfig, string fileName,string userIdentity)
+        public Item FindParentFromId(string itemId)
+        {
+            var item = _unitOfWork.Items.Find(i => i.Id.ToString() == itemId).FirstOrDefault();
+            return item;
+        }
+
+        public Task<SavedFileModel> AddFile(Stream stream, string fileName, string userIdentity)
         {
             var originalFileName = fileName;
             var newFileName = FileHelper.ObscureFileName(fileName);
@@ -50,7 +57,7 @@ namespace Stazh.Services.Implementations
            
             try
             {
-                var success = _fileService.SaveFileAsync(stream,storageConfig,userAndFileName);
+                var success = _fileService.SaveFileAsync(stream,userAndFileName);
             }
             catch (Exception e)
             {
@@ -61,6 +68,30 @@ namespace Stazh.Services.Implementations
 
             return Task.FromResult(saveFileModel);
 
+        }
+
+        public IEnumerable<ApiItem> FindAllBaseItems(string externalUserId)
+        {
+            var items = _unitOfWork.Items.GetBaseItemsForUser(externalUserId).Select(apiItm => new ApiItem(apiItm,_fileService.GetThumbnailUrls(apiItm, externalUserId)));
+            
+            return items;
+        }
+
+        public  IEnumerable<ApiItem> GetChildItemsFor(string externalUserId ,int id)
+        {
+            var items = _unitOfWork.Items.GetChildItemsForUserFrom(externalUserId, id);
+         
+            var apiItems =  items?.Select( i => new ApiItem(i, _fileService.GetThumbnailUrls(i, externalUserId)));
+            
+            return apiItems;
+        }
+
+        public void DeleteItem(string userId, int id)
+        {
+            var itm = _unitOfWork.Items.Get(id);
+            if(userId == itm.Owner.ExternalUniqueId)
+                _unitOfWork.Items.Remove(itm);
+            _unitOfWork.Complete();
         }
     }
 }

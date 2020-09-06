@@ -16,14 +16,22 @@ namespace Stazh.Data.AzureBlob.Helpers
         {
              var blobClient = CreateOrResolveBlob(storageConfig,fileName,createNewContainer);
              return blobClient;
-
-
         }
+
+        public static BlobServiceClient GetBlobServiceClientFrom(StorageConfig storageConfig)
+        {
+            var blobServiceClient = new BlobServiceClient(storageConfig.ConnectionString);
+            return blobServiceClient;
+        }
+
         public static int  DeleteContainer(StorageConfig storageConfig)
         {
             BlobContainerClient blobContainerClient  = new BlobContainerClient(storageConfig.ConnectionString,storageConfig.FileContainer);
             return blobContainerClient.DeleteIfExists().GetRawResponse().Status;
+
         }
+
+
         private static BlobClient CreateOrResolveBlob(StorageConfig storageConfig,string fileName, bool createNewContainer = true)
         {
             

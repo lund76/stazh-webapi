@@ -73,7 +73,7 @@ namespace Stazh.Application.WebApp.Controllers.Api
 
             foreach (var file in data.Files)
             { 
-              var addedFile = await  _itemService.AddFile(file.OpenReadStream(),storageConfig,file.FileName,userID);
+              var addedFile = await  _itemService.AddFile(file.OpenReadStream(),file.FileName,userID);
               var attachment = new Attachment {OriginalFileName = addedFile.OriginalFileName, UniqueAttachmentName = addedFile.UniqueFilename};
               MemoryStream ms = new MemoryStream();
               await file.OpenReadStream().CopyToAsync(ms);
