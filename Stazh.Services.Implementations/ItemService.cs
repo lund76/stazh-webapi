@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Stazh.Core.Data;
 using Stazh.Core.Data.Entities;
-using Stazh.Core.Data.Models;
 using Stazh.Core.Data.Models.Api;
-using Stazh.Core.Data.Repositories;
 using Stazh.Core.Helpers;
 using Stazh.Core.Services;
 
@@ -91,6 +87,19 @@ namespace Stazh.Services.Implementations
             var itm = _unitOfWork.Items.Get(id);
             if(userId == itm.Owner.ExternalUniqueId)
                 _unitOfWork.Items.Remove(itm);
+            _unitOfWork.Complete();
+        }
+
+        public Item GetItem(int itemId)
+        {
+            var itm = _unitOfWork.Items.Get(itemId);
+            return itm;
+        }
+
+        public void UpdateItem(Item item)
+        {
+            var itm =_unitOfWork.Items.Get(item.Id);
+            itm = item;
             _unitOfWork.Complete();
         }
     }

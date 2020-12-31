@@ -18,6 +18,9 @@ namespace Stazh.Core.Services
         IEnumerable<ApiItem> FindAllBaseItems(string externalUserId);
         IEnumerable<ApiItem> GetChildItemsFor(string externalUserId, int id);
         void DeleteItem( string userId,int id);
+        Item GetItem(int itemId);
+
+        void UpdateItem(Item item);
     }
 
    

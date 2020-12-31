@@ -1,14 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Stazh.Application.WebApi.Helpers;
 using Stazh.Application.WebApi.Utility;
-using Stazh.Core.Data.Entities;
-using Stazh.Core.Data.Models;
 using Stazh.Core.Data.Models.Api;
 using Stazh.Core.Services;
 
@@ -58,41 +55,30 @@ namespace Stazh.Application.WebApi.Controllers
         }
 
         [HttpPost("[action]")]
-        public async Task<IActionResult> Upload(IFormCollection data)
+        public async  Task<IActionResult> UploadParent([FromForm] ApiItemCreation<IFormFileCollection> newItem)
         {
-            var userId = ClaimHelper.GetUserIdFromClaim(User.Claims);
-            
-         
+            var item = await ItemHelper.CreateItem(newItem, ExtUserId, _userService, _itemService);
 
-            var item = new Item
-            {
-                Owner = _userService.GetOrCreateUser(userId),
-                Description = data["description"],
-                Name = data["Name"],
-                Parent = _itemService.FindParentFromId(data["parentItem"]),
-                Created = DateTime.UtcNow,
-                ItemAttachments = new HashSet<Attachment>()
-            };
+            var childItem = ItemHelper.ResolveChildren(newItem.childId,_itemService);
+            item.Children = childItem;
 
+            var apiItm = _itemService.InsertNewItem(item);
+            return new JsonResult(apiItm);
+        }
 
-            foreach (var file in data.Files)
-            { 
-              var addedFile = await  _itemService.AddFile(file.OpenReadStream(),file.FileName,userId);
-              var attachment = new Attachment {OriginalFileName = addedFile.OriginalFileName, UniqueAttachmentName = addedFile.UniqueFilename};
-              
-              //Removing thumbnails from database
-              //MemoryStream ms = new MemoryStream();
-              //await file.OpenReadStream().CopyToAsync(ms);
-              //attachment.Thumbnail = ms.ToArray();
-              
-              item.ItemAttachments.Add(attachment);
-            }
-            
+        [HttpPost("[action]")]
+        public async Task<IActionResult> Upload([FromForm] ApiItemCreation<IFormFileCollection> data)
+        {
+
+            var item = await ItemHelper.CreateItem(data, ExtUserId,_userService,_itemService);
+            item.Parent = ItemHelper.ResolveParent(data.ParentId, _itemService);
+
             var apiItem = _itemService.InsertNewItem(item);
-
             return new JsonResult(apiItem);
              
         }
+
+        
 
         // PUT: api/File/5
         [HttpPut("{id}")]
