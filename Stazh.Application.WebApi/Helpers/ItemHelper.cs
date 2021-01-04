@@ -22,15 +22,15 @@ namespace Stazh.Application.WebApi.Helpers
                 Created = DateTime.UtcNow,
                 ItemAttachments = new HashSet<Attachment>()
             };
-
+            if (data.Files == null) return item;
             foreach (var file in data.Files)
-            { 
-                var addedFile = await itemService.AddFile(file.OpenReadStream(),file.FileName,userId);
-                var attachment = new Attachment {OriginalFileName = addedFile.OriginalFileName, UniqueAttachmentName = addedFile.UniqueFilename};
+            {
+                var addedFile = await itemService.AddFile(file.OpenReadStream(), file.FileName, userId);
+                var attachment = new Attachment { OriginalFileName = addedFile.OriginalFileName, UniqueAttachmentName = addedFile.UniqueFilename };
                 item.ItemAttachments.Add(attachment);
             }
 
-            
+
             return item;
         }
 
